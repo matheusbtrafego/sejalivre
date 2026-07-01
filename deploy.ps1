@@ -15,7 +15,8 @@ export NVM_DIR="`$HOME/.nvm"
 [ -s "`$NVM_DIR/nvm.sh" ] && \. "`$NVM_DIR/nvm.sh"
 nvm use default
 cd /root/sejalivre || exit
-git pull origin main
+git fetch origin main
+git reset --hard origin/main
 npm install
 npm run build
 pm2 restart seja-livre || pm2 start npm --name "seja-livre" -- start
