@@ -55,8 +55,8 @@ export default function TarefasPage() {
 
   function addTarefa() {
     if (!newTarefa.titulo) return;
-    setAreas(prev => prev.map(a => a.id === selectedArea
-      ? { ...a, tarefas: [...a.tarefas, { id: `t${Date.now()}`, ...newTarefa, status: "A Fazer", responsavel: newTarefa.responsavel || area.responsavel || "—" }] }
+      setAreas(prev => prev.map(a => a.id === selectedArea
+      ? { ...a, tarefas: [...a.tarefas, { id: `t${Date.now()}`, ...newTarefa, status: "A Fazer", responsavel: newTarefa.responsavel || a.responsavel || "—" }] }
       : a));
     setShowNew(false);
     setNewTarefa({ titulo: "", descricao: "", prazo: "", prioridade: "Média", responsavel: "" });
