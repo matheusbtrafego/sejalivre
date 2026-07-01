@@ -184,6 +184,22 @@ export default function PessoasPage() {
     reader.readAsBinaryString(file);
   }
 
+  async function handleDrop(e: React.DragEvent, newStatus: string) {
+    e.preventDefault();
+    const pessoaId = e.dataTransfer.getData("pessoaId");
+    if (!pessoaId) return;
+    
+    // Otimista: atualiza a interface imediatamente
+    setPessoas(prev => prev.map(p => p.id === pessoaId ? { ...p, status: newStatus } : p));
+    
+    // Atualiza no banco
+    const { error } = await supabase.from('sl_membros').update({ status: newStatus }).eq('id', pessoaId);
+    if (error) {
+      alert("Erro ao mudar status: " + error.message);
+      fetchPessoas(); // Reverte em caso de erro
+    }
+  }
+
   return (
     <div style={{ maxWidth: 1200, margin: "0 auto", display: "flex", flexDirection: "column", gap: 24, paddingBottom: 60 }}>
 
@@ -325,7 +341,11 @@ export default function PessoasPage() {
             const columnPessoas = filtered.filter(p => p.status === status);
             const sc = statusStyle[status];
             return (
-              <div key={status} style={{ width: 320, minWidth: 320, background: "#f8fafc", borderRadius: 16, border: "1px solid #e2e8f0", display: "flex", flexDirection: "column", maxHeight: "calc(100vh - 240px)" }}>
+              <div key={status} 
+                onDragOver={(e) => { e.preventDefault(); e.currentTarget.style.background = "#f1f5f9"; }}
+                onDragLeave={(e) => { e.currentTarget.style.background = "#f8fafc"; }}
+                onDrop={(e) => { e.currentTarget.style.background = "#f8fafc"; handleDrop(e, status); }}
+                style={{ width: 320, minWidth: 320, background: "#f8fafc", borderRadius: 16, border: "1px solid #e2e8f0", display: "flex", flexDirection: "column", maxHeight: "calc(100vh - 240px)", transition: "background 0.2s" }}>
                 {/* Column Header */}
                 <div style={{ padding: "16px 20px", borderBottom: "1px solid #e2e8f0", display: "flex", alignItems: "center", justifyContent: "space-between" }}>
                   <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
@@ -339,13 +359,16 @@ export default function PessoasPage() {
                 <div style={{ padding: 16, overflowY: "auto", display: "flex", flexDirection: "column", gap: 12, flex: 1 }}>
                   {columnPessoas.length === 0 ? (
                     <div style={{ padding: "24px 0", textAlign: "center", color: "#94a3b8", fontSize: 12, fontWeight: 500, border: "2px dashed #e2e8f0", borderRadius: 12 }}>
-                      Nenhuma pessoa
+                      Solte o card aqui
                     </div>
                   ) : (
                     <AnimatePresence>
                       {columnPessoas.map(p => (
                         <motion.div key={p.id} initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} onClick={() => openEdit(p)}
-                          style={{ background: "#fff", borderRadius: 12, padding: 16, boxShadow: "0 2px 8px rgba(0,0,0,0.04)", border: "1px solid #f1f5f9", cursor: "pointer" }}>
+                          draggable
+                          onDragStart={(e: any) => { e.dataTransfer.setData("pessoaId", p.id); e.currentTarget.style.opacity = '0.5'; }}
+                          onDragEnd={(e: any) => { e.currentTarget.style.opacity = '1'; }}
+                          style={{ background: "#fff", borderRadius: 12, padding: 16, boxShadow: "0 2px 8px rgba(0,0,0,0.04)", border: "1px solid #f1f5f9", cursor: "grab" }}>
                           
                           <div style={{ display: "flex", alignItems: "flex-start", gap: 12, marginBottom: 12 }}>
                             <div style={{ width: 36, height: 36, borderRadius: 10, background: p.foto_url ? `url(${p.foto_url}) center/cover` : avatarColor(p.nome), display: "flex", alignItems: "center", justifyContent: "center", fontSize: 12, fontWeight: 700, color: "#fff", flexShrink: 0 }}>
