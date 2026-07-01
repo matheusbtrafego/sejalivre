@@ -3,7 +3,7 @@
 import { useState, useEffect, useRef } from "react";
 import { supabase } from "@/lib/supabase";
 import { motion, AnimatePresence } from "framer-motion";
-import { Plus, Search, Filter, Phone, Mail, Users, X, LayoutGrid, List, Upload, MoreHorizontal } from "lucide-react";
+import { Plus, Search, Filter, Phone, Mail, Users, X, LayoutGrid, List, Upload, MoreHorizontal, Trash2 } from "lucide-react";
 import { formatDate } from "@/lib/utils";
 import * as XLSX from "xlsx";
 
@@ -28,14 +28,19 @@ export default function PessoasPage() {
   const [search, setSearch]       = useState("");
   const [statusFilter, setStatus] = useState("Todos");
   const [viewMode, setViewMode]   = useState<"list" | "kanban">("list");
+  
   const [showModal, setShowModal] = useState(false);
+  const [selectedId, setSelectedId] = useState<string | null>(null);
   const [isUploading, setIsUploading] = useState(false);
+  const [isUploadingPhoto, setIsUploadingPhoto] = useState(false);
   
   const [pessoas, setPessoas]     = useState<any[]>([]);
   const [loading, setLoading]     = useState(true);
   
-  const [form, setForm]           = useState({ nome:"", email:"", telefone:"", status:"Visitante", area:"—", celula:"—", aniversario:"", dataConversao:"", dataVisita:"", responsavelFollowUp:"" });
+  const [form, setForm]           = useState({ nome:"", email:"", telefone:"", status:"Visitante", area:"—", celula:"—", aniversario:"", dataConversao:"", dataVisita:"", responsavelFollowUp:"", foto_url: "" });
+  
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const photoInputRef = useRef<HTMLInputElement>(null);
 
   const fetchPessoas = async () => {
     setLoading(true);
@@ -59,10 +64,57 @@ export default function PessoasPage() {
   const counts: Record<string, number> = { Todos: pessoas.length };
   statusOptions.forEach(s => { counts[s] = pessoas.filter(p => p.status === s).length; });
 
-  async function handleAdd() {
+  function openNew() {
+    setSelectedId(null);
+    setForm({ nome:"", email:"", telefone:"", status:"Visitante", area:"—", celula:"—", aniversario:"", dataConversao:"", dataVisita:"", responsavelFollowUp:"", foto_url: "" });
+    setShowModal(true);
+  }
+
+  function openEdit(pessoa: any) {
+    setSelectedId(pessoa.id);
+    setForm({
+      nome: pessoa.nome || "",
+      email: pessoa.email || "",
+      telefone: pessoa.telefone || "",
+      status: pessoa.status || "Visitante",
+      area: pessoa.area_atuacao || "—",
+      celula: "—",
+      aniversario: pessoa.data_nascimento || "",
+      dataConversao: pessoa.data_conversao || "",
+      dataVisita: pessoa.data_visita || "",
+      responsavelFollowUp: pessoa.resp_follow_up || "",
+      foto_url: pessoa.foto_url || ""
+    });
+    setShowModal(true);
+  }
+
+  async function handlePhotoUpload(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    
+    setIsUploadingPhoto(true);
+    const fileExt = file.name.split('.').pop();
+    const fileName = `${Date.now()}.${fileExt}`;
+    const filePath = `${fileName}`;
+
+    const { error: uploadError } = await supabase.storage.from('sejalivre_avatars').upload(filePath, file);
+    
+    if (uploadError) {
+      alert("Erro ao enviar foto: " + uploadError.message);
+      setIsUploadingPhoto(false);
+      return;
+    }
+
+    const { data } = supabase.storage.from('sejalivre_avatars').getPublicUrl(filePath);
+    
+    setForm(prev => ({ ...prev, foto_url: data.publicUrl }));
+    setIsUploadingPhoto(false);
+  }
+
+  async function handleSave() {
     if (!form.nome) return;
     
-    const novaPessoa = {
+    const pessoaData = {
       nome: form.nome,
       email: form.email || null,
       telefone: form.telefone || null,
@@ -71,17 +123,28 @@ export default function PessoasPage() {
       data_nascimento: form.aniversario || null,
       data_conversao: form.dataConversao || null,
       data_visita: form.status === "Visitante" ? (form.dataVisita || null) : null,
-      resp_follow_up: form.status === "Visitante" ? (form.responsavelFollowUp || null) : null
+      resp_follow_up: form.status === "Visitante" ? (form.responsavelFollowUp || null) : null,
+      foto_url: form.foto_url || null
     };
 
-    const { data, error } = await supabase.from('sl_membros').insert([novaPessoa]).select();
-    
-    if (data && data.length > 0) {
-      setPessoas(prev => [data[0], ...prev]);
+    if (selectedId) {
+      const { data } = await supabase.from('sl_membros').update(pessoaData).eq('id', selectedId).select();
+      if (data && data.length > 0) setPessoas(prev => prev.map(p => p.id === selectedId ? data[0] : p));
+    } else {
+      const { data } = await supabase.from('sl_membros').insert([pessoaData]).select();
+      if (data && data.length > 0) setPessoas(prev => [data[0], ...prev]);
     }
     
     setShowModal(false);
-    setForm({ nome:"", email:"", telefone:"", status:"Visitante", area:"—", celula:"—", aniversario:"", dataConversao:"", dataVisita:"", responsavelFollowUp:"" });
+  }
+
+  async function handleDelete() {
+    if (!selectedId) return;
+    if (!confirm("Tem certeza que deseja excluir esta pessoa do sistema?")) return;
+    
+    await supabase.from('sl_membros').delete().eq('id', selectedId);
+    setPessoas(prev => prev.filter(p => p.id !== selectedId));
+    setShowModal(false);
   }
 
   async function handleFileUpload(e: React.ChangeEvent<HTMLInputElement>) {
@@ -152,7 +215,7 @@ export default function PessoasPage() {
             {isUploading ? "Importando..." : <><Upload size={15} /> Importar</>}
           </button>
           
-          <button className="sl-btn-primary" onClick={() => setShowModal(true)}>
+          <button className="sl-btn-primary" onClick={openNew}>
             <Plus size={15} /> Nova Pessoa
           </button>
         </div>
@@ -197,7 +260,7 @@ export default function PessoasPage() {
           {!search && (
             <div style={{ display: "flex", gap: 12 }}>
               <button className="sl-btn-secondary" onClick={() => fileInputRef.current?.click()}><Upload size={14} /> Importar Lista</button>
-              <button className="sl-btn-primary" onClick={() => setShowModal(true)}><Plus size={14} /> Cadastrar Manual</button>
+              <button className="sl-btn-primary" onClick={openNew}><Plus size={14} /> Cadastrar Manual</button>
             </div>
           )}
         </div>
@@ -217,15 +280,15 @@ export default function PessoasPage() {
                 {filtered.map(p => {
                   const sc = statusStyle[p.status] ?? statusStyle.Visitante;
                   return (
-                    <motion.tr key={p.id} variants={rowItem}
-                      style={{ borderBottom: "1px solid #f3f4f6", transition: "background 0.2s" }}
+                    <motion.tr key={p.id} variants={rowItem} onClick={() => openEdit(p)}
+                      style={{ borderBottom: "1px solid #f3f4f6", transition: "background 0.2s", cursor: "pointer" }}
                       onMouseOver={e => (e.currentTarget.style.background = "#fffbf7")}
                       onMouseOut={e => (e.currentTarget.style.background = "transparent")}
                     >
                       <td style={{ padding: "16px 24px" }}>
                         <div style={{ display: "flex", alignItems: "center", gap: 14 }}>
-                          <div style={{ width: 40, height: 40, borderRadius: 12, background: avatarColor(p.nome), display: "flex", alignItems: "center", justifyContent: "center", fontSize: 13, fontWeight: 700, color: "#fff", flexShrink: 0, boxShadow: "0 2px 8px rgba(0,0,0,0.1)" }}>
-                            {getInitials(p.nome)}
+                          <div style={{ width: 40, height: 40, borderRadius: 12, background: p.foto_url ? `url(${p.foto_url}) center/cover` : avatarColor(p.nome), display: "flex", alignItems: "center", justifyContent: "center", fontSize: 13, fontWeight: 700, color: "#fff", flexShrink: 0, boxShadow: "0 2px 8px rgba(0,0,0,0.1)" }}>
+                            {!p.foto_url && getInitials(p.nome)}
                           </div>
                           <div>
                             <p style={{ fontSize: 14, fontWeight: 600, color: "#111827" }}>{p.nome}</p>
@@ -281,16 +344,16 @@ export default function PessoasPage() {
                   ) : (
                     <AnimatePresence>
                       {columnPessoas.map(p => (
-                        <motion.div key={p.id} initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }}
-                          style={{ background: "#fff", borderRadius: 12, padding: 16, boxShadow: "0 2px 8px rgba(0,0,0,0.04)", border: "1px solid #f1f5f9", cursor: "grab" }}>
+                        <motion.div key={p.id} initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} onClick={() => openEdit(p)}
+                          style={{ background: "#fff", borderRadius: 12, padding: 16, boxShadow: "0 2px 8px rgba(0,0,0,0.04)", border: "1px solid #f1f5f9", cursor: "pointer" }}>
                           
                           <div style={{ display: "flex", alignItems: "flex-start", gap: 12, marginBottom: 12 }}>
-                            <div style={{ width: 36, height: 36, borderRadius: 10, background: avatarColor(p.nome), display: "flex", alignItems: "center", justifyContent: "center", fontSize: 12, fontWeight: 700, color: "#fff", flexShrink: 0 }}>
-                              {getInitials(p.nome)}
+                            <div style={{ width: 36, height: 36, borderRadius: 10, background: p.foto_url ? `url(${p.foto_url}) center/cover` : avatarColor(p.nome), display: "flex", alignItems: "center", justifyContent: "center", fontSize: 12, fontWeight: 700, color: "#fff", flexShrink: 0 }}>
+                              {!p.foto_url && getInitials(p.nome)}
                             </div>
                             <div style={{ flex: 1 }}>
                               <p style={{ fontSize: 13.5, fontWeight: 700, color: "#0f172a", lineHeight: 1.2 }}>{p.nome}</p>
-                              <p style={{ fontSize: 11, color: "#64748b", marginTop: 4 }}>Cadastrado(a) em {formatDate(p.created_at)}</p>
+                              <p style={{ fontSize: 11, color: "#64748b", marginTop: 4 }}>Cadastro: {formatDate(p.created_at)}</p>
                             </div>
                           </div>
                           
@@ -311,7 +374,7 @@ export default function PessoasPage() {
         </div>
       )}
 
-      {/* Modal Nova Pessoa */}
+      {/* Modal Nova/Editar Pessoa */}
       <AnimatePresence>
         {showModal && (
           <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="sl-modal-backdrop" onClick={() => setShowModal(false)} style={{ zIndex: 999 }}>
@@ -320,11 +383,31 @@ export default function PessoasPage() {
               onClick={e => e.stopPropagation()}
             >
               <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 22 }}>
-                <h3 style={{ fontSize: 16, fontWeight: 700, color: "#111827" }}>Nova Pessoa</h3>
+                <h3 style={{ fontSize: 16, fontWeight: 700, color: "#111827" }}>{selectedId ? "Editar Pessoa" : "Nova Pessoa"}</h3>
                 <button onClick={() => setShowModal(false)} style={{ width: 30, height: 30, borderRadius: 8, border: "1px solid #e5e7eb", background: "#f9fafb", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center" }}>
                   <X size={14} color="#6b7280" />
                 </button>
               </div>
+
+              {/* Avatar Upload */}
+              <div style={{ display: "flex", alignItems: "center", gap: 16, marginBottom: 24, padding: "16px", background: "#f9fafb", borderRadius: 16, border: "1px solid #f3f4f6" }}>
+                <div 
+                  onClick={() => photoInputRef.current?.click()}
+                  style={{ 
+                    width: 60, height: 60, borderRadius: "50%", background: form.foto_url ? `url(${form.foto_url}) center/cover` : avatarColor(form.nome),
+                    display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer", position: "relative",
+                    boxShadow: "0 4px 12px rgba(0,0,0,0.06)", color: "#fff", fontSize: 20, fontWeight: 700, overflow: "hidden"
+                  }}>
+                  {!form.foto_url && getInitials(form.nome || "P")}
+                  {isUploadingPhoto && <div style={{ position: "absolute", inset: 0, background: "rgba(0,0,0,0.5)", display: "flex", alignItems: "center", justifyContent: "center" }}><span style={{ fontSize: 11, fontWeight: 600 }}>...</span></div>}
+                </div>
+                <div style={{ flex: 1 }}>
+                  <p style={{ fontSize: 13.5, fontWeight: 600, color: "#111827" }}>Foto de Perfil</p>
+                  <p style={{ fontSize: 12, color: "#6b7280", marginTop: 2 }}>Clique no círculo para {form.foto_url ? "trocar" : "adicionar"}</p>
+                </div>
+                <input type="file" accept="image/*" ref={photoInputRef} style={{ display: "none" }} onChange={handlePhotoUpload} />
+              </div>
+
               <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
                 {[{l:"Nome completo *",key:"nome",type:"text",ph:"Ex: João da Silva"},{l:"Email",key:"email",type:"email",ph:"joao@email.com"},{l:"Telefone / WhatsApp",key:"telefone",type:"text",ph:"(11) 99999-9999"}].map(f => (
                   <div key={f.key}>
@@ -371,9 +454,15 @@ export default function PessoasPage() {
                     </div>
                   </div>
                 )}
-                <div style={{ display: "flex", gap: 10, paddingTop: 6 }}>
+                
+                <div style={{ display: "flex", gap: 10, paddingTop: 16, marginTop: 8, borderTop: "1px solid #f3f4f6" }}>
+                  {selectedId && (
+                    <button style={{ padding: "0 16px", background: "#fef2f2", color: "#ef4444", border: "1px solid #fee2e2", borderRadius: 12, cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center" }} onClick={handleDelete} title="Excluir">
+                      <Trash2 size={16} />
+                    </button>
+                  )}
                   <button className="sl-btn-secondary" style={{ flex: 1 }} onClick={() => setShowModal(false)}>Cancelar</button>
-                  <button className="sl-btn-primary" style={{ flex: 1 }} onClick={handleAdd}>Salvar</button>
+                  <button className="sl-btn-primary" style={{ flex: 1.5 }} onClick={handleSave}>Salvar</button>
                 </div>
               </div>
             </motion.div>
