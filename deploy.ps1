@@ -19,7 +19,7 @@ git fetch origin main
 git reset --hard origin/main
 npm install
 npm run build
-pm2 restart seja-livre || pm2 start npm --name "seja-livre" -- start
+pm2 restart seja-livre --update-env || PORT=3005 pm2 start npm --name "seja-livre" -- start
 pm2 save
 "@
 

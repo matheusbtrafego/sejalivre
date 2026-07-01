@@ -1,9 +1,9 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { supabase } from "@/lib/supabase";
 import { motion, AnimatePresence } from "framer-motion";
 import { Plus, Search, Filter, Phone, Mail, Users, X } from "lucide-react";
-import { mockPessoas } from "@/lib/mock-data";
 import { formatDate } from "@/lib/utils";
 
 const statusOptions = ["Todos", "Visitante", "Frequentador", "Membro", "Líder"];
@@ -27,11 +27,23 @@ export default function PessoasPage() {
   const [search, setSearch]       = useState("");
   const [statusFilter, setStatus] = useState("Todos");
   const [showModal, setShowModal] = useState(false);
-  const [pessoas, setPessoas]     = useState(mockPessoas);
+  const [pessoas, setPessoas]     = useState<any[]>([]);
+  const [loading, setLoading]     = useState(true);
   const [form, setForm]           = useState({ nome:"", email:"", telefone:"", status:"Visitante", area:"—", celula:"—", aniversario:"", dataConversao:"", dataVisita:"", responsavelFollowUp:"" });
 
+  useEffect(() => {
+    async function fetchPessoas() {
+      const { data, error } = await supabase.from('sl_membros').select('*').order('created_at', { ascending: false });
+      if (data) setPessoas(data);
+      setLoading(false);
+    }
+    fetchPessoas();
+  }, []);
+
   const filtered = pessoas.filter(p => {
-    const matchSearch = p.nome.toLowerCase().includes(search.toLowerCase()) || p.email.toLowerCase().includes(search.toLowerCase());
+    const pNome = p.nome || "";
+    const pEmail = p.email || "";
+    const matchSearch = pNome.toLowerCase().includes(search.toLowerCase()) || pEmail.toLowerCase().includes(search.toLowerCase());
     const matchStatus = statusFilter === "Todos" || p.status === statusFilter;
     return matchSearch && matchStatus;
   });
@@ -39,9 +51,27 @@ export default function PessoasPage() {
   const counts: Record<string, number> = { Todos: pessoas.length };
   statusOptions.slice(1).forEach(s => { counts[s] = pessoas.filter(p => p.status === s).length; });
 
-  function handleAdd() {
+  async function handleAdd() {
     if (!form.nome) return;
-    setPessoas(prev => [...prev, { ...form, id: String(Date.now()), foto: null, createdAt: new Date().toISOString() }]);
+    
+    const novaPessoa = {
+      nome: form.nome,
+      email: form.email || null,
+      telefone: form.telefone || null,
+      status: form.status,
+      area_atuacao: form.area !== "—" ? form.area : null,
+      data_nascimento: form.aniversario || null,
+      data_conversao: form.dataConversao || null,
+      data_visita: form.status === "Visitante" ? (form.dataVisita || null) : null,
+      resp_follow_up: form.status === "Visitante" ? (form.responsavelFollowUp || null) : null
+    };
+
+    const { data, error } = await supabase.from('sl_membros').insert([novaPessoa]).select();
+    
+    if (data && data.length > 0) {
+      setPessoas(prev => [data[0], ...prev]);
+    }
+    
     setShowModal(false);
     setForm({ nome:"", email:"", telefone:"", status:"Visitante", area:"—", celula:"—", aniversario:"", dataConversao:"", dataVisita:"", responsavelFollowUp:"" });
   }
@@ -143,9 +173,9 @@ export default function PessoasPage() {
                       <td style={{ padding: "14px 20px" }}>
                         <span style={{ fontSize: 11.5, fontWeight: 600, padding: "3px 10px", borderRadius: 100, background: sc.bg, color: sc.color }}>{p.status}</span>
                       </td>
-                      <td style={{ padding: "14px 20px", fontSize: 13, color: "#4b5563" }}>{p.area}</td>
-                      <td style={{ padding: "14px 20px", fontSize: 13, color: "#4b5563" }}>{p.celula}</td>
-                      <td style={{ padding: "14px 20px", fontSize: 12, color: "#9ca3af" }}>{formatDate(p.createdAt)}</td>
+                      <td style={{ padding: "14px 20px", fontSize: 13, color: "#4b5563" }}>{p.area_atuacao || "—"}</td>
+                      <td style={{ padding: "14px 20px", fontSize: 13, color: "#4b5563" }}>{"—"}</td>
+                      <td style={{ padding: "14px 20px", fontSize: 12, color: "#9ca3af" }}>{formatDate(p.created_at)}</td>
                     </motion.tr>
                   );
                 })}
