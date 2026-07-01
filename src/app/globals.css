@@ -1,0 +1,215 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,100..900;1,14..32,100..900&display=swap');
+@import "tailwindcss";
+
+/* ===================== */
+/* RESET & BASE          */
+/* ===================== */
+*, *::before, *::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html, body {
+  height: 100%;
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  background: #f5f5f7;
+  color: #111827;
+}
+
+/* ===================== */
+/* SCROLLBAR             */
+/* ===================== */
+::-webkit-scrollbar { width: 4px; height: 4px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: #d1d5db; border-radius: 10px; }
+::-webkit-scrollbar-thumb:hover { background: #f97316; }
+
+/* ===================== */
+/* LIQUID GLASS SIDEBAR  */
+/* ===================== */
+.sidebar-glass {
+  background: rgba(255, 255, 255, 0.82);
+  backdrop-filter: blur(24px) saturate(180%);
+  -webkit-backdrop-filter: blur(24px) saturate(180%);
+  border-right: 1px solid rgba(255, 255, 255, 0.9);
+  box-shadow: 2px 0 20px rgba(0, 0, 0, 0.06);
+}
+
+.topbar-glass {
+  background: rgba(255, 255, 255, 0.88);
+  backdrop-filter: blur(16px) saturate(160%);
+  -webkit-backdrop-filter: blur(16px) saturate(160%);
+  border-bottom: 1px solid rgba(229, 231, 235, 0.8);
+  box-shadow: 0 1px 8px rgba(0, 0, 0, 0.04);
+}
+
+/* ===================== */
+/* CARD                  */
+/* ===================== */
+.sl-card {
+  background: #ffffff;
+  border-radius: 16px;
+  border: 1px solid #f3f4f6;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.05), 0 1px 2px rgba(0,0,0,0.04);
+  padding: 24px;
+  transition: box-shadow 0.2s ease;
+}
+.sl-card:hover {
+  box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+}
+
+/* ===================== */
+/* BUTTONS               */
+/* ===================== */
+.sl-btn-primary {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: linear-gradient(135deg, #f97316, #ea580c);
+  color: #fff;
+  border: none;
+  border-radius: 10px;
+  padding: 9px 18px;
+  font-size: 13.5px;
+  font-weight: 600;
+  font-family: inherit;
+  cursor: pointer;
+  box-shadow: 0 2px 8px rgba(249,115,22,0.28);
+  transition: all 0.18s ease;
+  white-space: nowrap;
+}
+.sl-btn-primary:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 16px rgba(249,115,22,0.38);
+  filter: brightness(1.05);
+}
+.sl-btn-primary:active { transform: translateY(0); }
+
+.sl-btn-secondary {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: #f9fafb;
+  color: #374151;
+  border: 1px solid #e5e7eb;
+  border-radius: 10px;
+  padding: 9px 18px;
+  font-size: 13.5px;
+  font-weight: 500;
+  font-family: inherit;
+  cursor: pointer;
+  transition: all 0.18s ease;
+  white-space: nowrap;
+}
+.sl-btn-secondary:hover {
+  background: #f3f4f6;
+  border-color: #d1d5db;
+  color: #111827;
+}
+
+/* ===================== */
+/* BADGES                */
+/* ===================== */
+.sl-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 3px 9px;
+  border-radius: 100px;
+  font-size: 11.5px;
+  font-weight: 600;
+  line-height: 1.4;
+}
+.sl-badge-orange { background: #fff7ed; color: #c2410c; }
+.sl-badge-green  { background: #f0fdf4; color: #15803d; }
+.sl-badge-blue   { background: #eff6ff; color: #1d4ed8; }
+.sl-badge-purple { background: #f5f3ff; color: #6d28d9; }
+.sl-badge-gray   { background: #f9fafb; color: #4b5563; border: 1px solid #e5e7eb; }
+.sl-badge-red    { background: #fef2f2; color: #b91c1c; }
+
+/* ===================== */
+/* INPUT                 */
+/* ===================== */
+.sl-input {
+  width: 100%;
+  background: #f9fafb;
+  border: 1px solid #e5e7eb;
+  border-radius: 10px;
+  padding: 9px 13px;
+  font-size: 14px;
+  font-family: inherit;
+  color: #111827;
+  outline: none;
+  transition: all 0.18s ease;
+}
+.sl-input:focus {
+  border-color: #f97316;
+  background: #fff;
+  box-shadow: 0 0 0 3px rgba(249,115,22,0.1);
+}
+.sl-input::placeholder { color: #9ca3af; }
+
+/* ===================== */
+/* SIDEBAR NAV ITEM      */
+/* ===================== */
+.sl-nav-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 9px 10px;
+  border-radius: 11px;
+  cursor: pointer;
+  font-size: 13.5px;
+  font-weight: 500;
+  color: #6b7280;
+  text-decoration: none;
+  transition: all 0.18s ease;
+  position: relative;
+}
+.sl-nav-item:hover {
+  background: rgba(249,115,22,0.07);
+  color: #374151;
+}
+.sl-nav-item.active {
+  background: linear-gradient(135deg, #f97316, #ea580c);
+  color: #fff;
+  box-shadow: 0 3px 10px rgba(249,115,22,0.3);
+  font-weight: 600;
+}
+.sl-nav-item.active svg { stroke-width: 2.5; }
+
+/* ===================== */
+/* ANIMATIONS            */
+/* ===================== */
+@keyframes fadeInUp {
+  from { opacity: 0; transform: translateY(14px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+@keyframes shimmer {
+  0%   { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
+}
+.animate-in { animation: fadeInUp 0.35s ease forwards; }
+
+/* Orange gradient text */
+.text-orange-gradient {
+  background: linear-gradient(135deg, #f97316, #c2410c);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+/* Modal backdrop */
+.sl-modal-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 50;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 16px;
+  background: rgba(0, 0, 0, 0.25);
+  backdrop-filter: blur(6px);
+}
