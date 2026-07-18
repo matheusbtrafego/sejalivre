@@ -12,6 +12,7 @@ export const metadata: Metadata = {
     locale: "pt_BR",
     type: "website",
   },
+  metadataBase: new URL("https://sejalivre.nexusx6.com.br"),
 };
 
 export default function RootLayout({
