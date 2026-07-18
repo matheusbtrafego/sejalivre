@@ -64,7 +64,7 @@ export default function DashboardPage() {
       </motion.div>
 
       {/* KPI Cards */}
-      <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 16 }}>
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         {kpiCards.map((card, i) => {
           const Icon = card.icon;
           return (
@@ -84,7 +84,7 @@ export default function DashboardPage() {
       </div>
 
       {/* Row */}
-      <div style={{ display: "grid", gridTemplateColumns: "1fr 300px", gap: 16 }}>
+      <div className="flex flex-col lg:grid lg:grid-cols-[1fr_300px] gap-4">
 
         {/* Próximos Eventos */}
         <motion.div {...fade(0.2)} className="sl-card">
@@ -123,6 +123,20 @@ export default function DashboardPage() {
 
         {/* Right column */}
         <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
+
+          {/* Acesso Rápido (QR Code) */}
+          <motion.div {...fade(0.2)} className="sl-card" style={{ padding: 20, display: "flex", flexDirection: "column", alignItems: "center", textAlign: "center", background: "linear-gradient(135deg, #fff, #f9fafb)" }}>
+            <h3 style={{ fontSize: 13.5, fontWeight: 700, color: "#111827", marginBottom: 12, display: "flex", alignItems: "center", gap: 6 }}>
+              <ArrowUpRight size={14} color="#f97316" /> Acesso ao App
+            </h3>
+            <div style={{ padding: 8, background: "#fff", borderRadius: 12, boxShadow: "0 2px 8px rgba(0,0,0,0.06)", border: "1px solid #f3f4f6", marginBottom: 12 }}>
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img src="https://api.qrserver.com/v1/create-qr-code/?size=300x300&data=https://invenzi.page.link/sFALJHZLxHyJB2169" alt="QR Code do App" style={{ width: 140, height: 140, display: "block" }} />
+            </div>
+            <p style={{ fontSize: 12, color: "#6b7280", lineHeight: 1.4 }}>
+              Escaneie ou compartilhe este QR Code para acessar o aplicativo.
+            </p>
+          </motion.div>
 
           {/* Alertas de Escala */}
           <motion.div {...fade(0.22)} className="sl-card" style={{ padding: 20, border: "1px solid #fecaca", background: "#fff" }}>

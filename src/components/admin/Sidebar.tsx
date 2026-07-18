@@ -22,7 +22,7 @@ const navItems = [
   { href: "/admin/configuracoes", label: "Configurações", icon: Settings },
 ];
 
-export function Sidebar() {
+export function Sidebar({ mobileOpen, setMobileOpen }: { mobileOpen?: boolean, setMobileOpen?: (v: boolean) => void }) {
   const [collapsed, setCollapsed] = useState(false);
   const pathname = usePathname();
 
@@ -30,12 +30,13 @@ export function Sidebar() {
     item.exact ? pathname === item.href : pathname.startsWith(item.href);
 
   const width = collapsed ? 72 : 252;
+  const isMobile = typeof window !== 'undefined' && window.innerWidth < 768;
 
   return (
     <motion.aside
-      animate={{ width }}
+      animate={{ width, x: mobileOpen || !isMobile ? 0 : -252 }}
       transition={{ duration: 0.28, ease: [0.4, 0, 0.2, 1] }}
-      className="sidebar-glass relative h-screen flex-shrink-0 z-40 flex flex-col"
+      className={`sidebar-glass h-screen flex-shrink-0 z-50 flex flex-col fixed md:relative top-0 left-0 ${mobileOpen ? 'shadow-2xl' : ''}`}
       style={{ width }}
     >
       {/* Top shimmer line */}

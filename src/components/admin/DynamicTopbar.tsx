@@ -15,8 +15,8 @@ const pageTitles: Record<string, { title: string; subtitle: string }> = {
   "/admin/configuracoes": { title: "Configurações", subtitle: "Dados e preferências do sistema" },
 };
 
-export default function DynamicTopbar() {
+export default function DynamicTopbar({ setMobileMenuOpen }: { setMobileMenuOpen?: (open: boolean) => void }) {
   const pathname = usePathname();
   const info = pageTitles[pathname] ?? { title: "Seja Livre", subtitle: "Sistema de Gestão" };
-  return <Topbar title={info.title} subtitle={info.subtitle} />;
+  return <Topbar title={info.title} subtitle={info.subtitle} setMobileMenuOpen={setMobileMenuOpen} />;
 }

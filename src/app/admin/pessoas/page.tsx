@@ -204,7 +204,7 @@ export default function PessoasPage() {
     <div style={{ maxWidth: 1200, margin: "0 auto", display: "flex", flexDirection: "column", gap: 24, paddingBottom: 60 }}>
 
       {/* Header Premium */}
-      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", background: "#fff", padding: "24px 32px", borderRadius: 20, boxShadow: "0 4px 20px rgba(0,0,0,0.03)" }}>
+      <div className="flex flex-col md:flex-row items-start md:items-center justify-between bg-white p-5 md:p-8 rounded-2xl shadow-[0_4px_20px_rgba(0,0,0,0.03)] gap-4">
         <div style={{ display: "flex", alignItems: "center", gap: 16 }}>
           <div style={{ width: 48, height: 48, borderRadius: 16, background: "linear-gradient(135deg, #f97316 0%, #ea580c 100%)", display: "flex", alignItems: "center", justifyContent: "center", boxShadow: "0 4px 12px rgba(249,115,22,0.3)" }}>
             <Users size={22} color="#fff" />
@@ -215,7 +215,7 @@ export default function PessoasPage() {
           </div>
         </div>
         
-        <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
+        <div className="flex flex-wrap md:flex-nowrap items-center gap-3 w-full md:w-auto">
           {/* View Toggle */}
           <div style={{ display: "flex", background: "#f3f4f6", borderRadius: 12, padding: 4, marginRight: 8 }}>
             <button onClick={() => setViewMode("list")} style={{ padding: "6px 12px", borderRadius: 8, display: "flex", alignItems: "center", gap: 6, fontSize: 13, fontWeight: 600, transition: "0.2s", background: viewMode === "list" ? "#fff" : "transparent", color: viewMode === "list" ? "#111827" : "#6b7280", boxShadow: viewMode === "list" ? "0 2px 8px rgba(0,0,0,0.05)" : "none", border: "none", cursor: "pointer" }}>
@@ -238,8 +238,8 @@ export default function PessoasPage() {
       </div>
 
       {/* Search & Filters */}
-      <div style={{ display: "flex", alignItems: "center", gap: 16 }}>
-        <div style={{ position: "relative", flex: 1, maxWidth: 360 }}>
+      <div className="flex flex-col md:flex-row md:items-center gap-4">
+        <div style={{ position: "relative", flex: 1, width: "100%", maxWidth: 360 }}>
           <Search size={15} style={{ position: "absolute", left: 14, top: "50%", transform: "translateY(-50%)", color: "#9ca3af", pointerEvents: "none" }} />
           <input className="sl-input" style={{ paddingLeft: 38, borderRadius: 14, border: "1px solid #e5e7eb", background: "#fff", boxShadow: "0 2px 8px rgba(0,0,0,0.02)" }} placeholder="Buscar por nome ou email..." value={search} onChange={e => setSearch(e.target.value)} />
         </div>
