@@ -7,7 +7,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import {
   LayoutDashboard, Users, CheckSquare, CalendarDays,
   Megaphone, Users2, DollarSign, UserCheck, Settings,
-  ChevronLeft, ChevronRight, Flame, Bell, LogOut,
+  ChevronLeft, ChevronRight, Flame, Bell, LogOut, QrCode
 } from "lucide-react";
 
 const navItems = [
@@ -19,6 +19,7 @@ const navItems = [
   { href: "/admin/celulas",    label: "Células",         icon: Users2 },
   { href: "/admin/financeiro", label: "Financeiro",      icon: DollarSign },
   { href: "/admin/aprovacoes", label: "Aprovações",      icon: UserCheck, badge: 2 },
+  { href: "/admin/qrcode",     label: "QR Code",         icon: QrCode },
   { href: "/admin/configuracoes", label: "Configurações", icon: Settings },
 ];
 

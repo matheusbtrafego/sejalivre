@@ -5,6 +5,8 @@ import { Users, CheckSquare, CalendarDays, UserCheck, ArrowUpRight, Flame, Clock
 import { mockKPIs, mockEventos, mockAvisos, mockPessoas } from "@/lib/mock-data";
 import { formatDate } from "@/lib/utils";
 import Link from "next/link";
+import { useEffect, useState } from "react";
+import { supabase } from "@/lib/supabase";
 
 const fade = (delay = 0) => ({
   initial: { opacity: 0, y: 16 },
@@ -35,6 +37,14 @@ function EmptyCard({ icon: Icon, message, action, href }: { icon: typeof Users; 
 }
 
 export default function DashboardPage() {
+  const [qrLink, setQrLink] = useState("https://invenzi.page.link/sFALJHZLxHyJB2169");
+
+  useEffect(() => {
+    supabase.from("sl_configuracoes").select("valor").eq("chave", "app_link").single().then(({ data }) => {
+      if (data) setQrLink(data.valor);
+    });
+  }, []);
+
   return (
     <div style={{ maxWidth: 1200, margin: "0 auto", display: "flex", flexDirection: "column", gap: 20 }}>
 
@@ -131,11 +141,16 @@ export default function DashboardPage() {
             </h3>
             <div style={{ padding: 8, background: "#fff", borderRadius: 12, boxShadow: "0 2px 8px rgba(0,0,0,0.06)", border: "1px solid #f3f4f6", marginBottom: 12 }}>
               {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img src="https://api.qrserver.com/v1/create-qr-code/?size=300x300&data=https://invenzi.page.link/sFALJHZLxHyJB2169" alt="QR Code do App" style={{ width: 140, height: 140, display: "block" }} />
+              <img src={`https://api.qrserver.com/v1/create-qr-code/?size=300x300&data=${encodeURIComponent(qrLink)}`} alt="QR Code do App" style={{ width: 140, height: 140, display: "block" }} />
             </div>
-            <p style={{ fontSize: 12, color: "#6b7280", lineHeight: 1.4 }}>
+            <p style={{ fontSize: 12, color: "#6b7280", lineHeight: 1.4, marginBottom: 16 }}>
               Escaneie ou compartilhe este QR Code para acessar o aplicativo.
             </p>
+            <Link href="/qrcode" target="_blank" style={{ textDecoration: "none", width: "100%" }}>
+              <button className="sl-btn-primary" style={{ width: "100%", justifyContent: "center" }}>
+                <ArrowUpRight size={14} /> Tela Cheia
+              </button>
+            </Link>
           </motion.div>
 
           {/* Alertas de Escala */}
